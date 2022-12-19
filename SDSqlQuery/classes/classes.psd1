@@ -1,0 +1,6 @@
+@{
+    order = @(
+        ,'SettingsClass'
+        ,'SqlTraceClass'
+    )
+}
