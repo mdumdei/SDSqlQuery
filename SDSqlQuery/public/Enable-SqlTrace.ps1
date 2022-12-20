@@ -1,22 +1,21 @@
 function Enable-SqlTrace {
 <#    
 .SYNOPSIS
-Enable in-memory log of Invoke-SqlQuery SQL queries and results.
+    Enable in-memory log of Invoke-SqlQuery SQL queries and results.
 .DESCRIPTION
-Turn on tracing, enabling an in-memory trace log of calls to Invoke-SqlQuery.
+    Turn on tracing, enabling an in-memory trace log of calls to Invoke-SqlQuery.
 
-Related cmdlets: Invoke-SqlQuery, Disable-SqlTrace, Get-SqlTraceEnabled, Get-SqlTrace, 
-Get-SqlTraceData, Write-SqlTraceLog, Clear-SqlTraceLog.
+    Related cmdlets: Invoke-SqlQuery, Disable-SqlTrace, Get-SqlTraceEnabled, Get-SqlTrace, Get-SqlTraceData, Write-SqlTraceLog, Clear-SqlTraceLog.
 .EXAMPLE
-PS> Enable-SqlTrace
+    PS> Enable-SqlTrace
 
-Turn on tracing of calls to Invoke-SqlQuery. 
+    Turn on tracing of calls to Invoke-SqlQuery. 
 .INPUTS 
-This cmdlet does not accept pipeline input.
+    None.
 .OUTPUTS 
-None
+    None
 .NOTES
-Author: Mike Dumdei
+    Author: Mike Dumdei
 #>    
     [CmdletBinding()]
     [OutputType([Void])]

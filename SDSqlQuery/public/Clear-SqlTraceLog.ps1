@@ -1,19 +1,19 @@
 function Clear-SqlTraceLog {
 <#    
 .SYNOPSIS
-Clear the SQL trace log.
+    Clear the SQL trace log.
 .DESCRIPTION
-Clear trace log entries created by Invoke-SqlQuery. Unless Set-SqlTraceOption has been enabled, no log will exist.
+    Clear trace log entries created by Invoke-SqlQuery. Unless Set-SqlTraceOption has been enabled, no log will exist.
 
-Related cmdlets: Invoke-SqlQuery, Set-SqlTraceOption, Get-SqlTrace, Get-SqlTraceData, Write-SqlTraceLog, Get-SqlTraceOption.
+    Related cmdlets: Invoke-SqlQuery, Set-SqlTraceOption, Get-SqlTrace, Get-SqlTraceData, Write-SqlTraceLog, Get-SqlTraceOption.
 .EXAMPLE
-PS> Clear-SqlTraceLog
+    PS> Clear-SqlTraceLog
 .INPUTS
-This cmdlet does not accept pipeline input.
+    None.
 .OUTPUTS
-None
+    None
 .NOTES
-Author: Mike Dumdei
+    Author: Mike Dumdei
 #> 
     [SqlTrace]::SqlTraceLog.Clear()
     [SqlTrace]::Count = 0

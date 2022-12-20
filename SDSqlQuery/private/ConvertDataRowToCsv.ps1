@@ -5,14 +5,14 @@ function ConvertDataRowToCsv {
 # 2nd array is only returned if formats (":|blahblah|") in a column mapping. Uses
 # CsvSafe function to add quotes and apply formats. 
     [CmdletBinding()]
-    [OutputType([StringBuilder])]
+    [OutputType([System.Text.StringBuilder])]
     param (
-        [Parameter()][DataRow]$row, 
+        [Parameter()][System.Data.SqlClient.DataRow]$row, 
         [Parameter()][hashtable]$map, 
         [Parameter()][ref][string[]]$mapFmts, # by Ref - need persistence
         [Parameter()][int32]$rowNum
     )
-    [StringBuilder]$sb = New-Object StringBuilder
+    [System.Text.StringBuilder]$sb = New-Object System.Text.StringBuilder
     $nCols = $Row.Table.Columns.Count
     if ($rowNum -eq 0) {
         $mapOut = MapColumns $($($Row.Table.Columns).ColumnName) $map

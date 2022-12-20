@@ -1,49 +1,39 @@
 function Write-SqlTraceLog {
 <#    
 .SYNOPSIS
-Convert trace log object(s) to text for writing to log or console display.
+    Convert trace log object(s) to text for writing to log or console display.
 .DESCRIPTION
-This cmdlet provides a display of the contents of the SQL trace log. The trace
-log is an in-memory array of PS custom objects and is enabled via the Set-SqlTraceOption
-cmdlet. When enabled, items are placed in the array each time Invoke-SqlQuery is called.
+    This cmdlet provides a display of the contents of the SQL trace log. The trace log is an in-memory array of PS custom objects and is enabled via the Set-SqlTraceOption cmdlet. When enabled, items are placed in the array each time Invoke-SqlQuery is called.
 
-Write-SqlTraceLog displays the list in a text format for export to a log or viewing on
-the console.
+    Write-SqlTraceLog displays the list in a text format for export to a log or viewing on the console.
 
-Use the -ExpandTables switch to display full table results instead of the default
-summarized view. Use the Item parameter to only display a single element, Use MapFields
-to rename columns, format numeric or datetime columns, or trim trailing spaces from fixed
-CHAR columns.
+    Use the -ExpandTables switch to display full table results instead of the default summarized view. Use the Item parameter to only display a single element, Use MapFields to rename columns, format numeric or datetime columns, or trim trailing spaces from fixed CHAR columns.
 
-Related cmdlets: Invoke-SqlQuery, Set-SqlTraceOption, Get-SqlTrace, Get-SqlTraceData,
-Clear-SqlTraceLog, Get-SqlTraceOption.
+    Related cmdlets: Invoke-SqlQuery, Set-SqlTraceOption, Get-SqlTrace, Get-SqlTraceData, Clear-SqlTraceLog, Get-SqlTraceOption.
 .PARAMETER Item
-Zero-based item index of trace item to view. Omit to display all entries.
+    Zero-based item index of trace item to view. Omit to display all entries.
 .PARAMETER ExpandTables
-Expand table results to show all rows and data retreived by the query.
+    Expand table results to show all rows and data retreived by the query.
 .PARAMETER MapFields
-Rename columns, trim trailing spaces from strings, or apply formatting to date/time
-fields and numerics. See Invoke-SqlQuery description for details.
+    Rename columns, trim trailing spaces from strings, or apply formatting to date/time fields and numerics. See Invoke-SqlQuery description for details.
 .INPUTS
-This cmdlet does not accept pipeline input.
+    None.
 .OUTPUTS
-String value of log data.
+    String (Trace Data).
 .EXAMPLE
-PS> Write-SqlTraceLog
+    PS> Write-SqlTraceLog
 
-Displays a summarized of all entries currently in the trace log.
+    Displays a summarized of all entries currently in the trace log.
 .EXAMPLE
-PS> Write-SqlTraceLog 2 -MapFields @{ 'City' = 'City:|trim|' }
+    PS> Write-SqlTraceLog 2 -MapFields @{ 'City' = 'City:|trim|' }
 
-Displays a summarized list of the 3rd element in the trace log and trim trailing spaces
-from results in the City column (think instances where City was defined as CHAR(50) instead
-of as a VARCHAR or NVARCHAR).
+    Displays a summarized list of the 3rd element in the trace log and trim trailing spaces from results in the City column (think instances where City was defined as CHAR(50) instead of as a VARCHAR or NVARCHAR).
 .EXAMPLE
-PS> Write-SqlTraceLog -ExpandTables
+    PS> Write-SqlTraceLog -ExpandTables
 
-Displays all trace log entries with table results fully expanded.
+    Displays all trace log entries with table results fully expanded.
 .NOTES
-Author: Mike Dumdei
+    Author: Mike Dumdei
 #>
     [CmdletBinding()]
     [OutputType([string])]
@@ -60,7 +50,7 @@ Author: Mike Dumdei
             "--- $(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")) ------------------" | Out-File $LogFile -Append
             [Environment]::NewLine | Out-File $LogFile -Append
         } catch {
-            throw "Can't write to logfile [$LogFile]: $($Error[0].Message)"
+            throw "Can't write to logfile [$LogFile]: $($_.Exception.Message)"
         }
     }
     if ($PSBoundParameters.ContainsKey('Item')) {
@@ -70,7 +60,7 @@ Author: Mike Dumdei
     }
     for ($itm = $from; $itm -le $to; $itm++) {
         [SqlTrace]$h = Get-SqlTrace $itm
-        [StringBuilder]$pStr = New-Object StringBuilder
+        [System.Text.StringBuilder]$pStr = New-Object System.Text.StringBuilder
         if ($null -ne $h.Parms -and $h.Parms.Count -gt 0) {
             $pStr.Append("@{ ") | Out-Null
             foreach ($key in $h.Parms.Keys) {
@@ -79,13 +69,13 @@ Author: Mike Dumdei
             }
             $pStr.Append(" }") | Out-Null
         }
-        [StringBuilder]$sb = New-Object StringBuilder
+        [System.Text.StringBuilder]$sb = New-Object System.Text.StringBuilder
         $sb.Append("idx    :").AppendLine($h.Idx.ToString()) | Out-Null
         $sb.Append("srv/db :").AppendLine("$($h.Srv),$($h.DB)") | Out-Null
         $sb.Append("cmd    :").AppendLine($h.Cmd) | Out-Null
         $sb.Append("parms  :").AppendLine($(ConvertHashToString $h.Parms)) | Out-Null
         $sb.Append("data   :") | Out-Null
-        if ($null -ne $h.Data -and $h.Data -isnot [DataTable]) {
+        if ($null -ne $h.Data -and $h.Data -isnot [System.Data.DataTable]) {
             $sb.AppendLine($h.Data.ToString()) | Out-Null
         } elseif ($null -ne $h.Data) {
             $sb.AppendLine($(GetDataTableSummary $h.Data)) | Out-Null
@@ -94,7 +84,7 @@ Author: Mike Dumdei
         if ($logging) {
             $sb.ToString() | Out-File $LogFile -Append
         }
-        if ($ExpandTables -and $h.Data -is [DataTable]) {
+        if ($ExpandTables -and $h.Data -is [System.Data.DataTable]) {
             $sb = ConvertDataTableToCsv $h.Data $MapFields
             $sb.AppendLine() | Out-Null
             Write-Output $sb.ToString()

@@ -7,12 +7,12 @@ function ConvertObjectArrayToCsv {
 # and apply formats. Ref passing is used to maintain persistence in the called 
 # ConvertObjectToCsv function of mapped fields after rowNum 0 process and to persist 
 # rowNum itself.
-    [OutputType([StringBuilder])]
+    [OutputType([System.Text.StringBuilder])]
     param(
         [Object[]]$objs, 
         [hashtable]$map
     )
-    [StringBuilder]$sb = New-Object StringBuilder
+    [System.Text.StringBuilder]$sb = New-Object System.Text.StringBuilder
     [int]$rowNum = 0
     [string[]]$mapFmts = $null
     foreach ($obj in $objs) {

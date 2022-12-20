@@ -22,8 +22,8 @@ function MapColumns  {
             $colMap[$i] = $cn
         } else {
             $s = $map[$cn]
-            $j = $s.LastIndexOf(":") + 1
-            if ($j -gt 1 -and $s[$j] -eq '|' -and $s[-1] -eq '|') {
+            $j = $s.LastIndexOf(":|") + 1
+            if ($j -gt 1 -and $s[-1] -eq '|') {
                 $f = $s.Substring($j).Trim('|') 
                 if ($f.Length -gt 0) { 
                     if ($f -eq "trim") {

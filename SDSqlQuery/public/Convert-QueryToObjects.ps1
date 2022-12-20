@@ -1,49 +1,42 @@
 function Convert-QueryToObjects {
 <#    
 .SYNOPSIS
-Convert DataTable results to a PSObjects array.
+    Convert DataTable results to a PSObjects array.
 .DESCRIPTION
-The C# implementation of a call to Invoke-SqlQuery when used with the 'RawReader' switch returns
-a DataTable object as the result. If trace logging is enabled, the Data field for all tabular
-results is also a DataTable object. The Convert-QueryToObjects cmdlet converts the DataTable
-object into an array of PSObjects and replaces DBNulls with PowerShell nulls. MapFields may be
-used to change field names and strip trailing spaces from fixed CHAR() fields.
+    The C# implementation of a call to Invoke-SqlQuery when used with the 'RawReader' switch returns a DataTable object as the result. If trace logging is enabled, the Data field for all tabular results is also a DataTable object. The Convert-QueryToObjects cmdlet converts the DataTable object into an array of PSObjects and replaces DBNulls with PowerShell nulls. MapFields may be used to change field names and strip trailing spaces from fixed CHAR() fields.
 
-The set of allowed input objects provided enables pipeline input from various sources. Unless
-you are working with a trace object, it is better to use the Reader vs. RawReader switch for tabular
-data making this cmdlet unnecessary.
+    The set of allowed input objects provided enables pipeline input from various sources. Unless you are working with a trace object, it is better to use the Reader vs. RawReader switch for tabular data making this cmdlet unnecessary.
 
-Related cmdlets: Invoke-SqlQuery, Get-SqlTrace, Get-SqlTraceData, Convert-QueryToCsv
+    Related cmdlets: Invoke-SqlQuery, Get-SqlTrace, Get-SqlTraceData, Convert-QueryToCsv
 .PARAMETER MapFields
-Rename output field names and/or trim trailing spaces from fixed CHAR() fields. See Invoke-SqlQuery
-description for details. Numeric formats described there have no effect in this context.
+    Rename output field names and/or trim trailing spaces from fixed CHAR() fields. See Invoke-SqlQuery description for details. Numeric formats described there have no effect in this context.
 .PARAMETER Table
-DataTable item to use as input
+    DataTable item to use as input
 .PARAMETER PSObjects
-Array of PSObjects to use as input
+    Array of PSObjects to use as input
 .PARAMETER Row
-DataRow to use as input
+    DataRow to use as input
 .PARAMETER SqlTraceItem
-Sql Trace item to use as input
+    Sql Trace item to use as input
 .INPUTS
-DataTable, DataRow(s), PSObjects[], or SqlTrace Object
+    DataTable, DataRow, PSObjects[], or SqlTrace Object
 .OUTPUTS
-CSV data as a string
+    CSV data as a string
 .EXAMPLE
-PS> [PSObject[]]$objs = Convert-QueryToObjects -Table $(Get-SqlTrace 0).Data
+    PS> [PSObject[]]$objs = Convert-QueryToObjects -Table $(Get-SqlTrace 0).Data
 
-Convert the content of Trace item 0 from a DataTable to a PSObject array.
+    Convert the content of Trace item 0 from a DataTable to a PSObject array.
 .NOTES
-Author: Mike Dumdei
+    Author: Mike Dumdei
 #>
     [CmdletBinding()]
     param (
         [Alias("DataRow")]
         [Parameter(Position=0,ParameterSetName="Row",ValueFromPipeline,Mandatory)]
-        [DataRow]$Row,        
+        [System.Data.DataRow]$Row,        
         [Alias("DataTable")]       
         [Parameter(Position=0,ParameterSetName="Table",ValueFromPipeline,Mandatory)]
-        [DataTable]$Table,    
+        [System.Data.DataTable]$Table,    
         [Alias("SqlTrace")]    
         [Parameter(Position=0,ParameterSetName="Trace",ValueFromPipeline,Mandatory)]
         [SqlTrace]$SqlTraceItem,
@@ -76,7 +69,7 @@ Author: Mike Dumdei
             }
             return $obj
         } elseif ($null -ne $Objects) {    
-            [List[PSObject]]$objAry = New-Object List[PSObject]
+            [System.Collections.Generic.List[PSObject]]$objAry = New-Object System.Collections.Generic.List[PSObject]
             for ($j = 0; $j -lt $Objects.Count; $j++) {
                 $obj = $Objects[$j]
                 $newObj = New-Object PSObject
@@ -100,11 +93,11 @@ Author: Mike Dumdei
             } 
             return $objAry
         } else {
-            if ($null -ne $SqlTraceItem -and $SqlTraceItem.Data -is [DataTable]) { 
+            if ($null -ne $SqlTraceItem -and $SqlTraceItem.Data -is [System.Data.DataTable]) { 
                 $Table = $SqlTraceItem.Data 
             }
             if ($null -ne $Table) {
-                [List[PSObject]]$objAry = New-Object List[PSobject]
+                [System.Collections.Generic.List[PSObject]]$objAry = New-Object System.Collections.Generic.List[PSobject]
                 foreach ($row in $Table.Rows) {
                     [PSObject]$obj = New-Object PSCustomObject
                     for ($i = 0; $i -lt $Table.Columns.Count; $i++) {

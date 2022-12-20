@@ -4,13 +4,13 @@ function ConvertDataTableToCsv {
 # 1 or 2 string arrays - one with the column names and the other with formats. The
 # 2nd array is only returned if formats (":|blahblah|") in a column mapping. Uses
 # CsvSafe function to add quotes and apply formats.    
-    [OutputType([StringBuilder])]
-    param ([DataTable]$tbl, [hashtable]$map = @{})
+    [OutputType([System.Text.StringBuilder])]
+    param ([System.Data.DataTable]$tbl, [hashtable]$map = @{})
     $mapOut = MapColumns $($($tbl.Columns).ColumnName) $map
     $mapCols = $mapOut['Map']
     $mapFmts = $mapOut['Fmts']
     $nCols = $mapCols.Count
-    [StringBuilder]$sb = New-Object StringBuilder
+    [System.Text.StringBuilder]$sb = New-Object System.Text.StringBuilder
     for ($i = 0; $i -lt $nCols; $i++) {
         if ($i -ne 0) { $sb.Append(',') | Out-Null }
         $sb.Append($(CsvSafe $mapCols[$i])) | Out-Null

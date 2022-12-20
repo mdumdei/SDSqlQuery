@@ -5,14 +5,14 @@ function ConvertObjectToCsv {
 # the column names and the other with formats. The 2nd array is only returned if 
 # formats (":|blahblah|") in a column mapping. Uses CsvSafe function to add quotes
 # and apply formats.    
-    [OutputType([StringBuilder])]
+    [OutputType([System.Text.StringBuilder])]
     param(
         [Parameter()][psobject]$obj, 
         [Parameter()][hashtable]$map, 
         [Parameter()][ref][string[]]$mapFmts,  # By ref - need persistence
         [Parameter()][ref][int]$rowNum
     )
-    [StringBuilder]$sb = New-Object StringBuilder
+    [System.Text.StringBuilder]$sb = New-Object System.Text.StringBuilder
     if ($rowNum.Value -eq 0) {
         $mapCols = $($obj.PSObject.Properties).Name
         $mapOut = MapColumns $mapCols $map

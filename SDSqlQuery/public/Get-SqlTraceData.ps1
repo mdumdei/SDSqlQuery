@@ -1,61 +1,46 @@
 function Get-SqlTraceData  {
 <#    
 .SYNOPSIS
-Retrieve the trace log or an item from the trace log.
+    Retrieve the trace log or an item from the trace log.
 .DESCRIPTION
-This cmdlet retrieves just the Data property for an item in the trace log. The trace 
-log is an in-memory array of PS custom objects and is enabled via the Set-SqlTraceOption
-cmdlet. When enabled, items are placed in the array each time Invoke-SqlQuery is called.
-Object properties include the index of the entry (Idx), server (Srv) and database (DB)
-used for the query, the query string (Qry), any passed parameters (Parms) followed by
-the results of the query (Data).
+    This cmdlet retrieves just the Data property for an item in the trace log. The trace log is an in-memory array of PS custom objects and is enabled via the Set-SqlTraceOption cmdlet. When enabled, items are placed in the array each time Invoke-SqlQuery is called. Object properties include the index of the entry (Idx), server (Srv) and database (DB) used for the query, the query string (Qry), any passed parameters (Parms) followed by the results of the query (Data).
 
-For tabular queries, the Data property will be a DataTable object. For scalar queries, 
-it is whatever type of object was returned by the query. For non-query queries, the 
-Data property will be the number of rows affected. Get-SqlTrace returns objects. 
+    For tabular queries, the Data property will be a DataTable object. For scalar queries, it is whatever type of object was returned by the query. For non-query queries, the Data property will be the number of rows affected. Get-SqlTrace returns objects. 
 
-Related cmdlets: Invoke-SqlQuery, Enable-SqlTrace, Disable-SqlTrace, Get-SqlTraceEnabled, 
-Get-SqlTrace, Write-SqlTraceLog, Clear-SqlTraceLog.
+    Related cmdlets: Invoke-SqlQuery, Enable-SqlTrace, Disable-SqlTrace, Get-SqlTraceEnabled, Get-SqlTrace, Write-SqlTraceLog, Clear-SqlTraceLog.
 .PARAMETER Index
-Zero-based index of trace log item to retrieve. Required.
+    Zero-based index of trace log item to retrieve. Required.
 .PARAMETER AsDataTable
-Returns tabular data as a DataTable object (raw).
+    Returns tabular data as a DataTable object (raw).
 .PARAMETER As PSObjects
-Returns tabular data as an array of PSObjects. DBNulls will be converted to PowerShell
-nulls. If trim is specified for a fixed CHAR() column via MapFields, trailing spaces will
-be removed from the column.
+    Returns tabular data as an array of PSObjects. DBNulls will be converted to PowerShell nulls. If trim is specified for a fixed CHAR() column via MapFields, trailing spaces will be removed from the column.
 .PARAMETER MapFields
-Rename columns, trim trailing spaces from strings, or apply formatting to date/time fields
-and numerics. See Invoke-SqlQuery description for details.
+    Rename columns, trim trailing spaces from strings, or apply formatting to date/time fields and numerics. See Invoke-SqlQuery description for details.
 .PARAMETER AsCsv
-Returns tabular data a long CSV string suitable for file output.
+    Returns tabular data a long CSV string suitable for file output.
 .INPUTS
-This cmdlet does not accept pipeline input.
+    None.
 .OUTPUTS
-A DataTable object, list of PSObjects, CSV string, or other type depending on parameters
-and data in the trace.
+    DataTable, List[PSObjects], String (CSV), Scalar/NonQueries: Object
 .EXAMPLE
-PS> Get-SqlTraceData -Item 3 
+    PS> Get-SqlTraceData -Item 3 
 
-Retrieve the data property from the 4th item in the trace log.
+    Retrieve the data property from the 4th item in the trace log.
 .EXAMPLE
-PS> Get-SqlTraceData 0 -AsObjects 
+    PS> Get-SqlTraceData 0 -AsObjects 
 
-Retrieve the data property from the 1st item in the trace log. If the item is tabular data,
-it will be converted to a PSObject array with DBNulls converted to $nulls. If it is not tabular,
-that Data element is returned as is.
+    Retrieve the data property from the 1st item in the trace log. If the item is tabular data, it will be converted to a PSObject array with DBNulls converted to $nulls. If it is not tabular, that Data element is returned as is.
 .EXAMPLE
-PS> $map = @{ employee_nbr = "EmpNbr:|000000|; hdate = "HireDate:|yyyy-MM-dd|" }
-PS> Get-SqlTraceData -Item 0 -AsCsv -MapFields $map }
+    PS> $map = @{ employee_nbr = "EmpNbr:|000000|; hdate = "HireDate:|yyyy-MM-dd|" }
+    PS> Get-SqlTraceData -Item 0 -AsCsv -MapFields $map }
 
-Retrieve the data property from 1st item in the trace log and if it is tabular data it will 
-be converted to CSV format with columns renamed and formatting applied.
+    Retrieve the data property from 1st item in the trace log and if it is tabular data it will be converted to CSV format with columns renamed and formatting applied.
 .NOTES
-Author: Mike Dumdei
+    Author: Mike Dumdei
 #>
     [CmdletBinding(DefaultParameterSetName='Objects')]
     [OutputType([PSObjects[]],ParameterSetName="Objects")]
-    [OutputType([DataTable],ParameterSetName="DataTable")]
+    [OutputType([System.Data.DataTable],ParameterSetName="DataTable")]
     [OutputType([string],ParameterSetName="Csv")]
     param (
         [Parameter(Position=0,Mandatory)]
@@ -69,7 +54,7 @@ Author: Mike Dumdei
         if (!$PSBoundParameters.ContainsKey('MapFields')) { $MapFields = @{} }
     } process {
         $val = $(Get-SqlTrace $Item).Data
-        if ($val -isnot [DataTable] -or $AsDataTable) {  
+        if ($val -isnot [System.Data.DataTable] -or $AsDataTable) {  
             Write-Output $val; 
         } elseif ($AsCsv) {
             Write-Output $(Convert-QueryToCsv $val -MapFields $MapFields)

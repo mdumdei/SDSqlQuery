@@ -5,7 +5,7 @@ function ConvertHashToString {
         [hashtable]$p
     )
     if ($null -eq $p -or $p.Count -eq 0) { return '' }
-    [StringBuilder]$sb = New-Object StringBuilder
+    [System.Text.StringBuilder]$sb = New-Object System.Text.StringBuilder
     $sb.Append('@{ ') | Out-Null
     $p.GetEnumerator() | ForEach-Object {
         if ($sb.Length -gt 3) { $sb.Append("; ") | Out-Null }
