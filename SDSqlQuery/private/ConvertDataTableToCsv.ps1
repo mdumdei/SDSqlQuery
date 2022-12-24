@@ -5,7 +5,10 @@ function ConvertDataTableToCsv {
 # 2nd array is only returned if formats (":|blahblah|") in a column mapping. Uses
 # CsvSafe function to add quotes and apply formats.    
     [OutputType([System.Text.StringBuilder])]
-    param ([System.Data.DataTable]$tbl, [hashtable]$map = @{})
+    param (
+        [Parameter(Position=0)][System.Data.DataTable]$tbl, 
+        [Parameter(Position=1)][hashtable]$map = @{}
+    )
     $mapOut = MapColumns $($($tbl.Columns).ColumnName) $map
     $mapCols = $mapOut['Map']
     $mapFmts = $mapOut['Fmts']

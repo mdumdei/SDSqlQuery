@@ -1,7 +1,7 @@
 InModuleScope -ModuleName SDSqlQuery -ScriptBlock {
     BeforeAll {
         $dataTbl = New-Object System.Data.DataTable
-        $dataTbl.Columns.Add("key", "Int32")
+        $dataTbl.Columns.Add("key", "int")
         $dataTbl.Columns.Add("col1", "string")
         $dataTbl.Columns.Add("col2", "datetime")
         $data = @(

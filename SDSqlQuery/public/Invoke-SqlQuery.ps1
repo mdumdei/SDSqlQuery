@@ -54,8 +54,6 @@ function Invoke-SqlQuery  {
     Database to connect to for the query (in place of a connection or connection string).
 .PARAMETER FileName
     If specified, the output of the query will be output to this file as a CSV rather than going to the output stream.
-.PARAMETER Silent
-    Suppresses console warning/error messages.
 .PARAMETER TestMode
     Builds SqlCommmand object and returns it without executing. Does not open a SqlConnection.
 .INPUTS
@@ -200,10 +198,8 @@ function Invoke-SqlQuery  {
         [Parameter(Position = 8, ParameterSetName = "ConnStr_Reader")]
         [Parameter(Position = 8, ParameterSetName = "Conn_Reader")]
         [hashtable]$MapFields,
-          # Silent
-        [Parameter(Position = 9)][Switch]$Silent,
           # Test
-        [Parameter(Position = 10)][Switch]$TestMode
+        [Parameter(Position = 9)][Switch]$TestMode
     )
     begin {
         if ($PSBoundParameters.ContainsKey('SqlConn') -eq $false) {
@@ -268,14 +264,12 @@ function Invoke-SqlQuery  {
             }
             return $rval
         } catch {
-            if ($Silent -eq $false) {
-                Write-Host
-                Write-Host -ForegroundColor Red '-- Error executing SQL command:'
-                Write-Host $Query
-                Write-Host -ForegroundColor Red '-------------------------------'
-                Write-Host -ForegroundColor Red $_.Exception.Message
-            }
-            if ($null -ne $logObj) { $logObj.data = $Error[0] }
+            Write-Verbose ''
+            Write-Verbose '-- Error executing SQL command:'
+            Write-Verbose $Query
+            Write-Verbose '-------------------------------'
+            Write-Verbose $_.Exception.Message
+            if ($null -ne $logObj) { $logObj.data = $_.Exception.Message }
             throw    # re-throw so error is propagated and script aborted if not handled
         } 
         finally {

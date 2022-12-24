@@ -7,10 +7,10 @@ function ConvertObjectToCsv {
 # and apply formats.    
     [OutputType([System.Text.StringBuilder])]
     param(
-        [Parameter()][psobject]$obj, 
-        [Parameter()][hashtable]$map, 
-        [Parameter()][ref][string[]]$mapFmts,  # By ref - need persistence
-        [Parameter()][ref][int]$rowNum
+        [Parameter(Position=0)][psobject]$obj, 
+        [Parameter(Position=1)][hashtable]$map, 
+        [Parameter(Position=2)][ref][string[]]$mapFmts,  # By ref - need persistence
+        [Parameter(Position=3)][ref][int]$rowNum
     )
     [System.Text.StringBuilder]$sb = New-Object System.Text.StringBuilder
     if ($rowNum.Value -eq 0) {

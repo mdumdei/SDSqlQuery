@@ -7,10 +7,10 @@ function ConvertDataRowToCsv {
     [CmdletBinding()]
     [OutputType([System.Text.StringBuilder])]
     param (
-        [Parameter()][System.Data.DataRow]$row, 
-        [Parameter()][hashtable]$map, 
-        [Parameter()][ref][string[]]$mapFmts, # by Ref - need persistence
-        [Parameter()][int32]$rowNum
+        [Parameter(Position=0)][System.Data.DataRow]$row, 
+        [Parameter(Position=1)][hashtable]$map, 
+        [Parameter(Position=2)][ref][string[]]$mapFmts, # by Ref - need persistence
+        [Parameter(Position=3)][int]$rowNum
     )
     [System.Text.StringBuilder]$sb = New-Object System.Text.StringBuilder
     $nCols = $Row.Table.Columns.Count

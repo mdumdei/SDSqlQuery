@@ -38,7 +38,7 @@ function Write-SqlTraceLog {
     [CmdletBinding()]
     [OutputType([string])]
     param(
-        [Parameter(Position = 0)][Int32]$Item,
+        [Parameter(Position = 0)][int]$Item,
         [Parameter(Position = 1)][Switch]$ExpandTables,
         [Parameter(Position = 2)][hashtable]$MapFields = @{},
         [Parameter(Position = 3)][string]$LogFile
