@@ -42,7 +42,7 @@ function Invoke-SqlQuery  {
     Parameter table if using parameterized queries or a stored procedure. Pass as key/value pairs (hashtable).
 .PARAMETER MapFields
     Rename columns, trim trailing spaces from strings, or apply formatting to date/time fields and numerics. Invoke-SqlQuery description has usage.
-.PARAMETER CmdTimeOut
+.PARAMETER CommandTimeOut
     Time in seconds before the query times out. Use for long running queries.
 .PARAMETER ConnectionString
     The connection string to use to connect to SQL for the query.
@@ -56,6 +56,8 @@ function Invoke-SqlQuery  {
     If specified, the output of the query will be output to this file as a CSV rather than going to the output stream.
 .PARAMETER Silent
     Suppresses console warning/error messages.
+.PARAMETER TestMode
+    Builds SqlCommmand object and returns it without executing. Does not open a SqlConnection.
 .INPUTS
     None.
 .OUTPUTS
@@ -68,11 +70,11 @@ function Invoke-SqlQuery  {
 .EXAMPLE
     PS> $qry = "EXEC sp_DoStuff @yr, @dept"
 
-    PS> $connStr = "Server=srv1;Database=erpDB;Username=Jake;Password=123"
+    PS> $connStr = "Server=srv1;Database=erpDB;User ID=Jake;Password=123"
     PS> $parms = @{ @yr = 2022; 'dept' = "Finance" }
     PS> $data = Invoke-SqlQuery -Reader -Query $qry -Params $parms -ConnectionString $connStr
 
-    Run a 'Reader' stored procedure using a connection string. If the connection string does not include login credentials, you can use -Credential to provide credentials or you can use the Set-Credential cmdlet to preset the login user for the connection.
+    Run a 'Reader' stored procedure using a connection string. Connection strings, if provided, must include authentication as: 1) directly in string, 2) include "Integrated Security=true", or 3) specify an '*' as the User ID and supply a Credential parameter or be able to retrieve a credential from the credential cached (see Set-SqlCacheCredential).
 .EXAMPLE
     PS> $topSal = Invoke-SqlQuery -Scalar -Query "SELECT MAX(Salary) FROM EmpTable WHERE Department = 'Sales'" -Connection $conn
 
@@ -82,13 +84,13 @@ function Invoke-SqlQuery  {
 
     Run a NonQuery query to update rows matching a criteria using a pre-defined connection string.
 .EXAMPLE
-    PS> $connStr = "Server=srv1;Database=db1;User ID=|user|;Password=|pw|;"
+    PS> $connStr = "Server=srv1;Database=db1;User ID=*;"
     PS> $results = Invoke-SqlQuery .... -ConnectionString $connStr -Credential $cred
 
-    This partial example shows using a ConnectionString with placeholder values. The placehoders "|user|" and "|pw|" will be replaced with the values found in the Credential parameter. The credential could also come out of the credential cache (See Set-SqlCacheCredential). This is more secure than using plaintext passwords in connection strings.
+    This partial example shows using a ConnectionString with a placeholder value. To use a placeholder means putting an * as the 'User ID' and/or 'Password' value. The credential then is used to supply the actual User ID and Password. This is a more secure method since credential passwords are secure string values.
 .EXAMPLE
     PS>  # Beginning of script
-    PS> Set-SqlCacheConnectionString "Server=srv1;Database=db"
+    PS> Set-SqlCacheConnectionString "Server=srv1;Database=db;User ID=*"
     PS> Set-SqlCacheCredential -Credential $(Get-Credential)
     ...
     PS>  # Subsequent calls to Invoke-SqlQuery may omit ConnectionString/Credential
@@ -100,7 +102,7 @@ function Invoke-SqlQuery  {
     PS> $parms = @{ dept = 'Accounting' }
     PS> $map = @{ first_name = 'First Name:|trim|'; last_name = 'Last Name'; hire_date = 'Hire Date:|yyyy-MM-dd|' }
     PS> $csv = "C:\Reports\HireDates.csv"
-    PS> Invoke-SqlQuery -Query $qry -Params $parms -MapFields $map -FileName $csv -Credential $creds
+    PS> Invoke-SqlQuery -Query $qry -Params $parms -MapFields $map -FileName $csv   # assumes cached connection string and credential
 
     Execute a stored procedure and send the results to a CSV file. Rename the first_name, last_name, and hire_date columns and apply yyyy-MM-dd formatting to the hire date. If first_name is of type CHAR(40) vs. VARCHAR(40), trailing spaces will be removed. Note the syntax for trims/formats - a colon after the name and the format code within pipes.
 .NOTES
@@ -166,8 +168,8 @@ function Invoke-SqlQuery  {
         [Parameter(Position = 4, ParameterSetName = "Srv_Scalar", Mandatory)]
         [Parameter(Position = 4, ParameterSetName = "Srv_NonQuery", Mandatory)]
         [string]$Database,
-          # CmdTimeout
-        [Parameter(Position = 5)][Int32]$CmdTimeOut,
+          # CommandTimeOut
+        [Parameter(Position = 5)][Int32]$CommandTimeOut,
           # Credential
         [Parameter(Position = 6, ParameterSetName = "Cache_Reader")]
         [Parameter(Position = 6, ParameterSetName = "Cache_RawReader")]
@@ -199,7 +201,9 @@ function Invoke-SqlQuery  {
         [Parameter(Position = 8, ParameterSetName = "Conn_Reader")]
         [hashtable]$MapFields,
           # Silent
-        [Parameter(Position = 9)][Switch]$Silent
+        [Parameter(Position = 9)][Switch]$Silent,
+          # Test
+        [Parameter(Position = 10)][Switch]$TestMode
     )
     begin {
         if ($PSBoundParameters.ContainsKey('SqlConn') -eq $false) {
@@ -208,8 +212,8 @@ function Invoke-SqlQuery  {
             if (![string]::IsNullOrEmpty($Server)) { $splat.Add('Server', $Server) }
             if (![string]::IsNullOrEmpty($Database)) { $splat.Add('Database', $Database) }
             if ($null -ne $Credential) { $splat.Add('Credential', $Credential) }
-            $SqlConn = Open-SqlConnection @splat
-        } elseif ($SqlConn.State -ne [ConnectionState]::Open) {
+            $SqlConn = Open-SqlConnection @splat -NoOpen:$TestMode
+        } elseif ($SqlConn.State -ne [ConnectionState]::Open -and !$TestMode) {
             throw "SQL connection not in open state"
         }
         $Server = $sqlConn.DataSource
@@ -234,12 +238,13 @@ function Invoke-SqlQuery  {
                     $cmd.Parameters.AddWithValue("@$($_.Key)", $($_.Value)) | Out-Null
                 }
             }
-            if ($PSBoundParameters.ContainsKey('CmdTimeout')) {
-                $cmd.CommandTimeout = $CmdTimeOut
+            if ($PSBoundParameters.ContainsKey('CommandTimeOut')) {
+                $cmd.CommandTimeout = $CommandTimeOut
             }
             if ($(Get-SqlTraceEnabled)) {
                 [SqlTrace]$logObj = New-Object SqlTrace $Server, $Database, $Query, $Params
             }
+            if ($TestMode) { return $cmd }
             if ($Reader -or $RawReader) {   # returns tabular data
                 [System.Data.DataTable]$dt = New-Object System.Data.DataTable
                 $dt.Load($cmd.ExecuteReader()) | Out-Null

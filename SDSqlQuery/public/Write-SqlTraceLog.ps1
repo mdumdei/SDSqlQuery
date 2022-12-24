@@ -47,8 +47,9 @@ function Write-SqlTraceLog {
     if ([SqlTrace]::Count -eq 0 -or $Item -gt [SqlTrace]::Count) { return }
     if ([string]::IsNullOrEmpty($LogFile) -eq $false) {
         try {
-            "--- $(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")) ------------------" | Out-File $LogFile -Append
+            "--- $([DateTime]::Now.ToString("yyyy-MM-dd HH:mm:ss")) ------------------" | Out-File $LogFile -Append
             [Environment]::NewLine | Out-File $LogFile -Append
+            $logging = $true
         } catch {
             throw "Can't write to logfile [$LogFile]: $($_.Exception.Message)"
         }

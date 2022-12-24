@@ -19,9 +19,7 @@ function Clear-SqlCacheConnectionString {
 #>
     [CmdletBinding()]
     [OutputType([Void])]
-    param(
-        [Parameter(Position=0,Mandatory)][string]$ConnectionString
-    )
+    param()
     [SqlSettings]::SqlConnectionString = $null
 }
     

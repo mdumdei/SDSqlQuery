@@ -7,7 +7,7 @@ function ConvertDataRowToCsv {
     [CmdletBinding()]
     [OutputType([System.Text.StringBuilder])]
     param (
-        [Parameter()][System.Data.SqlClient.DataRow]$row, 
+        [Parameter()][System.Data.DataRow]$row, 
         [Parameter()][hashtable]$map, 
         [Parameter()][ref][string[]]$mapFmts, # by Ref - need persistence
         [Parameter()][int32]$rowNum
@@ -27,7 +27,7 @@ function ConvertDataRowToCsv {
     for ($i = 0; $i -lt $nCols; $i++) {
         if ($i -ne 0) { $sb.Append(',') | Out-Null }
         if ($null -ne $mapFmts.Value) {
-            $sb.Append($(CsvSafe $row[$i], $mapFmts.Value[$i])) | Out-Null
+            $sb.Append($(CsvSafe $row[$i] $mapFmts.Value[$i])) | Out-Null
         } else {
             $sb.Append($(CsvSafe $row[$i])) | Out-Null
         }

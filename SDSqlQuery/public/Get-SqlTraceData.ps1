@@ -21,7 +21,7 @@ function Get-SqlTraceData  {
 .INPUTS
     None.
 .OUTPUTS
-    DataTable, List[PSObjects], String (CSV), Scalar/NonQueries: Object
+    DataTable, List[PSObject], String (CSV), Scalar/NonQueries: Object
 .EXAMPLE
     PS> Get-SqlTraceData -Item 3 
 
@@ -39,7 +39,7 @@ function Get-SqlTraceData  {
     Author: Mike Dumdei
 #>
     [CmdletBinding(DefaultParameterSetName='Objects')]
-    [OutputType([PSObjects[]],ParameterSetName="Objects")]
+    [OutputType([PSObject[]],ParameterSetName="Objects")]
     [OutputType([System.Data.DataTable],ParameterSetName="DataTable")]
     [OutputType([string],ParameterSetName="Csv")]
     param (

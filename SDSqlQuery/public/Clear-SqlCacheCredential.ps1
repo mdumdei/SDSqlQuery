@@ -31,7 +31,7 @@ function Clear-SqlCacheCredential {
 .NOTES
     Author: Mike Dumdei
 #>
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName = "SrvDB")]
     [OutputType([Void])]
     param(
         [Parameter(Position=0, ParameterSetName = 'SrvDB')]$Server,

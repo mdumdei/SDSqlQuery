@@ -5,7 +5,9 @@ function Open-SqlConnection {
 .DESCRIPTION
     Open an SQL connection to a server. Invoke-SqlQuery automatically opens and closes connections using its ConnectionString parameter or Server and Database parameters, so calling this directly is only necessary if you want to pass Invoke-SqlQuery an open connection via the SqlConnection parameter.
 
-    Connection strings may include placeholders for username and password fields. Placeholder values are "|user|" and "|pw|". When using place holders, the  values for "|user|" and "|pw|" are extracted from the passed Credential parameter or a cached credential if using cached credentials.
+    Connection strings may include placeholders for username and/or password fields. A placeholder is simply entering an '*' for either the User ID or Password fields. If an '*' is placed in either, the connection will connect to the server and database specified in the connection string. The credentials will come from the Credential parameter if present and from a SqlCacheCredential if the function itself does not specify the parameter. An error is thrown if a placeholder is specified and no credential can be located. See Set-SqlCacheCredential.
+
+    The 'NoOpen' switch does everything except actually Open the connection. If specified, the return value is an unopened SqlConnection object vs. an opened SqlConnection object. The purpose of the switch is primarily for unit tests and debugging, but it does provide a final hook before the Open call if needed for other purposes.
 .PARAMETER ConnectionString
     Connection string to use for the connection. Credential may be embedded or passed in the Credential parameter.
 .PARAMETER Credential
@@ -14,6 +16,8 @@ function Open-SqlConnection {
     If not using a connection string, this is the server for the connection.
 .PARAMETER Database
     If not using a connection string, this is the database for the connection.
+.PARAMETER NoOpen
+    Return an unopened SqlConnection object ready for the Open call. 
 .INPUTS
     None.
 .OUTPUTS
@@ -24,15 +28,18 @@ function Open-SqlConnection {
 
     Open an SQL connection using a connection string and a plaintext password stored in a PS variable.
 .EXAMPLE
-    PS> $connStr = "Server=$srv1;Database=$db;MultipleActiveResultSets=true;User ID=|user|;Password=|pw|;"
-    PS> [SqlConnection]$conn = Open-SqlConnection -ConnectionString $connStr -Credential $creds
+    PS>  # At beginning of script - at least that is the idea - set once and forget
+    PS> Set-SqlCacheConnectionString "Server=sqlSrv;Database=myDB;User ID=*;"
+    PS> Set-SqlCacheCredential $creds
+    PS>  # Remaining parts of the script unless an override is needed, BUT let Invoke-SqlQuery handle connections unless there is a reaon not to.
+    PS> [SqlConnection]$conn = Open-SqlConnection
 
-    Open a connection with the user name and password extracted from the Credential value. Credential can either by passed as one of the parameters or pre-cached (See Set-SqlCacheCredential).
+    Open a connection using cached values. The '*' in the connection string signifies the User ID and Password values are to be retrieved from a passed Credential parameter or from the credential cache (see Set-SqlCacheCredential).
 .EXAMPLE
     PS> $connStr = "Server=$srv1;Database=$db;"
     PS> [SqlConnection]$conn = Open-SqlConnection -ConnectionString $connStr -Credential $creds
 
-    Open an SQL connection using a connection string. The difference between this and the previous example is this example assigns the $creds value to the SqlConnection object's password property vs. embedding it in the connection string. The credential could also be retrieved from the credential cache (see Set-SqlCacheCredential).
+    Open an SQL connection using a connection string. The difference between this example and the previous one is this example directly specifies the connection string and credentials where in the previous example they were pulled from the cache.
 .EXAMPLE
     PS> [SqlConnection]$conn = Open-SqlConnection -Server Srv1 -Database DB1 -Credential $creds
 
@@ -46,52 +53,59 @@ function Open-SqlConnection {
         [Parameter(Position = 0, ParameterSetName="ConnStr", Mandatory)][string]$ConnectionString,
         [Parameter(Position = 0, ParameterSetName="SrvDB", Mandatory)][string]$Server,
         [Parameter(Position = 1, ParameterSetName="SrvDB", Mandatory)][string]$Database,
-        [Parameter(Position = 2)][Object]$Credential
+        [Parameter(Position = 2)][Object]$Credential,
+        [Parameter(Position = 3)][Switch]$NoOpen
     )
     $conn = New-Object System.Data.SqlClient.SqlConnection
+    $scb = $null
+    $sqlCreds = $null
+    $havePlaceHolders = $false; $isSrvDB = $false
     $cstr = $ConnectionString
     if ([string]::IsNullOrEmpty($cstr) -and [string]::IsNullOrEmpty($Server)) {
-        $cstr = [SqlSettings]::SqlConnectionString
-    }
-    elseif ([string]::IsNullOrEmpty($Server) -eq $false) {
-        $cstr = "Server=$Server;Database=$Database;"
-    }
-    if ($null -eq $cstr) {
-        throw "Connection string not provided and no value found in cache"
-    }
-    $conn.ConnectionString = $cstr
-    $srv = $conn.DataSource
-    $db = $conn.Database
-    if ($null -ne $Credential) {
-        if ($Credential -is [System.Data.SqlClient.SqlCredential]) {
-            $psCreds = $null
-            $sqlCreds = $Credential
-        } elseif ($Credential -is [PSCredential]) {
-            $Credential.Password.MakeReadOnly()
-            $sqlCreds = New-Object System.Data.SqlClient.SqlCredential($Credential.UserName, $Credential.Password)
+        if ([string]::IsNullOrEmpty([SqlSettings]::SqlConnectionString) -eq $false) {
+            $cstr = [SqlSettings]::SqlConnectionString
         } else {
-            throw "Connect-Sql: Credential must be PSCredential or SqlCredential"
+            throw "ConnectionString or Server/Database not provided and not in cache"
         }
+    }
+    if ([string]::IsNullOrEmpty($Database)) {
+        $scb = New-Object System.Data.SqlClient.SqlConnectionStringBuilder($cstr)
+        $havePlaceHolders = $($scb.UserID -eq "*" -or $scb.Password -eq "*")
     } else {
-        $sqlCreds = Get-SqlCacheCredential -Server $srv -Database $db
+        $scb = New-Object System.Data.SqlClient.SqlConnectionStringBuilder
+        $scb.Add("Data Source", $Server)
+        $scb.Add("Initial Catalog", $Database)
+        $isSrvDB = $true
     }
-    if ($null -eq $sqlCreds -and [string]::IsNullOrEmpty($Server) -eq $false) {
-        $semi = @(';','')[$cstr.EndsWith(';')]
-        $conn.ConnectionString = "${cstr}${semi}Integrated Security=true;"
-    } elseif ($null -ne $sqlCreds) {
-        if ($cstr.Contains("|user|") -or $cstr.Contains("|pw|")) {
-            if ($null -eq $psCreds) {
-                $sqlCreds.Password.MakeReadOnly()
-                $psCreds = New-Object PSCredential($sqlCreds.UserID, $sqlCreds.Password)
+    if ($Credential -is [System.Data.SqlClient.SqlCredential]) {
+        $sqlCreds = $Credential
+    } elseif ($Credential -is [PSCredential]) {
+        $Credential.Password.MakeReadOnly()
+        $sqlCreds = New-Object System.Data.SqlClient.SqlCredential($Credential.UserName, $Credential.Password)
+    } elseif ($null -ne $Credential) {
+        throw "Credential must be PSCredential or SqlCredential"
+    }
+    if ($null -eq $sqlCreds -and ($isSrvDB -or $havePlaceHolders)) {
+        $sqlCreds = Get-SqlCacheCredential $scb.DataSource $scb.InitialCatalog
+        if ($null -eq $sqlCreds) {
+            if ($havePlaceHolders) {
+                throw "ConnectionString uses placeholders but credential not provided or in cache"
+            } else {
+                $scb.Add("Integrated Security", $true)
             }
-            $cstr = $cstr.Replace("|user|", $psCreds.UserName)
-            $conn.ConnectionString = $cstr.Replace("|pw|", $psCreds.GetNetworkCredential().Password)
-        } else {
-            $conn.Credential = $sqlCreds
         }
     }
-    try {
-        $conn.Open()
+    if ($null -ne $sqlCreds) {
+        foreach ($k in @("User ID","Password","Integrated Security")) {
+            $scb.Remove($k) | Out-Null
+        }
+        $conn.Credential = $sqlCreds
+    }
+   try {
+        $conn.ConnectionString = $scb.ConnectionString
+        if ($NoOpen -eq $false) {
+            $conn.Open()            
+        }
         return $conn
     } catch {
         throw "SQL connection failed: $($_.Exception.Message)"
