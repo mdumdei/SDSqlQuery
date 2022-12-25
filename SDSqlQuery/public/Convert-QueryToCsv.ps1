@@ -3,7 +3,9 @@ function Convert-QueryToCsv {
 .SYNOPSIS
     Convert Invoke-SqlQuery Reader/RawReader results to CSV format.
 .DESCRIPTION
-    Converts table-based outputs created by Invoke-SqlQuery to CSV format with option to re-map property names, trim trailing spaces from fixed CHAR(x) properties, replace $DBNull:Value with $null, and apply formatting to numeric and datetime properties. Invoke-SqlQuery has a FileName switch that directly produces a CSV file which is a better solution if a CSV is all you need. For outputting trace data as a CSV, this works well.
+    This command converts result sets obtained from Invoke-SqlQuery Reader/RawReader queries to CSV format. Null values are converted to empty columns. The MapFields parameter may be used to optionally rename output columns, trim trailing spaces from fixed CHAR(x) columns, and apply formatting to date and numeric columns. 
+
+    Invoke-SqlQuery will also produce a CSV directly which in most cases will be a better solution than using Convert-QueryToCsv. See the Invoke-SqlQuery help for MapFields syntax and the options provided by that command to generate CSV files. The primary reason this command exists is to provide a way to convert trace data to CSV.
 
     Related cmdlets: Invoke-SqlQuery, Convert-QueryToOBjects, Get-SqlTrace, Get-SqlTraceData
 .PARAMETER FileName
@@ -23,7 +25,7 @@ function Convert-QueryToCsv {
 .OUTPUTS
     String (CSV Data)
 .EXAMPLE
-    PS> Get-SqlTrace 1 | Convert-QueryToCsv -MapFields @{ emp_name = 'Name'; h_date = 'HireDate:|MM-dd-yyyy|' }
+    PS:\>Get-SqlTrace 1 | Convert-QueryToCsv -MapFields @{ emp_name = 'Name'; h_date = 'HireDate:|MM-dd-yyyy|' }
 
     Convert the DataTable data that was captured in the 2nd trace entry (the trace log is zero-based) to CSV, rename the columns emp_name and h_date and apply date formatting to the hire date.
 .NOTES

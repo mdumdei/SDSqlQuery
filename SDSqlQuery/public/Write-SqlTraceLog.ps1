@@ -21,15 +21,15 @@ function Write-SqlTraceLog {
 .OUTPUTS
     String (Trace Data).
 .EXAMPLE
-    PS> Write-SqlTraceLog
+    PS:\>Write-SqlTraceLog
 
     Displays a summarized of all entries currently in the trace log.
 .EXAMPLE
-    PS> Write-SqlTraceLog 2 -MapFields @{ 'City' = 'City:|trim|' }
+    PS:\>Write-SqlTraceLog 2 -MapFields @{ 'City' = 'City:|trim|' }
 
     Displays a summarized list of the 3rd element in the trace log and trim trailing spaces from results in the City column (think instances where City was defined as CHAR(50) instead of as a VARCHAR or NVARCHAR).
 .EXAMPLE
-    PS> Write-SqlTraceLog -ExpandTables
+    PS:\>Write-SqlTraceLog -ExpandTables
 
     Displays all trace log entries with table results fully expanded.
 .NOTES

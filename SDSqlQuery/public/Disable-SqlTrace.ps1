@@ -7,7 +7,7 @@ function Disable-SqlTrace {
 
     Related cmdlets: Invoke-SqlQuery, Enable-SqlTrace, Get-SqlTraceEnabled, Get-SqlTrace, Get-SqlTraceData, Write-SqlTraceLog, Clear-SqlTraceLog.
 .EXAMPLE
-    PS> Disable-SqlTrace
+    PS:\>Disable-SqlTrace
 
     Turn off tracing of calls to Invoke-SqlQuery. 
 .INPUTS 

@@ -3,7 +3,7 @@ function Clear-SqlCacheCredential {
 .SYNOPSIS
     Remove a credential from the SQL credential cache.
 .DESCRIPTION
-    Credentials may be preset at the start of a script using a credential cache so that a script does not have to pass credentials to Invoke-SqlQuery for each call. This cmdlet removes one or more credentials.
+    When performing multiple queries from within a script, the same login credential is often used for all connections. Set-SqlCacheCredential presets the SQL login credential so the Credential parameter may be omitted when calling Invoke-SqlQuery. This command is used to remove preset credentials set using Set-SqlCacheCredential.
 
     Related cmdlets: Invoke-SqlQuery, Set-SqlCacheCredential, Get-SqlCacheCredential
 .PARAMETER Server
@@ -13,15 +13,15 @@ function Clear-SqlCacheCredential {
 .PARAMETER All
     Remove all cached credentials.
 .EXAMPLE
-    PS> Clear-SqlCacheCredential -Server Srv1
+    PS:\>Clear-SqlCacheCredential -Server Srv1
 
     Remove SQL credentials for logins for a specific server. Unless using contained databases, this will be the lowest level credential.
 .EXAMPLE
-    PS> Clear-SqlCacheCredential
+    PS:\>Clear-SqlCacheCredential
 
     If a credential was set without setting a server name, that credential applies to all connections that do not have a more specific credential set. This removes that one "global" credential.
 .EXAMPLE
-    PS> Clear-SqlCacheCredential -All
+    PS:\>Clear-SqlCacheCredential -All
 
     Compleletly clear the credential cache.
 .INPUTS

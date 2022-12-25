@@ -3,11 +3,11 @@ function Open-SqlConnection {
 .SYNOPSIS
     Open a connection to a SQL server.
 .DESCRIPTION
-    Open an SQL connection to a server. Invoke-SqlQuery automatically opens and closes connections using its ConnectionString parameter or Server and Database parameters, so calling this directly is only necessary if you want to pass Invoke-SqlQuery an open connection via the SqlConnection parameter.
+    Open an SQL connection to a server. Invoke-SqlQuery automatically opens and closes connections using 1) the ConnectionString parameter, or 2) the Server and Database parameters, or 3) a connection preset using Set-SqlCacheConnectionString. Calling Open-SqlConnection directly is only necessary if you want to pass Invoke-SqlQuery an open connection via the -Connection parameter.
 
-    Connection strings may include placeholders for username and/or password fields. A placeholder is simply entering an '*' for either the User ID or Password fields. If an '*' is placed in either, the connection will connect to the server and database specified in the connection string. The credentials will come from the Credential parameter if present and from a SqlCacheCredential if the function itself does not specify the parameter. An error is thrown if a placeholder is specified and no credential can be located. See Set-SqlCacheCredential.
+    Connection strings may include placeholders for username and/or password fields. A placeholder simply refers to using an asterisk in place of the User ID or Password. If an asterisk is placed in either, the connection will connect to the server and database specified in the connection string with the credentials coming from the Credential parameter if present or from a SqlCacheCredential if the Credential was not directly specified. An error is thrown if a placeholder is specified in the connection string and no credential can be located.
 
-    The 'NoOpen' switch does everything except actually Open the connection. If specified, the return value is an unopened SqlConnection object vs. an opened SqlConnection object. The purpose of the switch is primarily for unit tests and debugging, but it does provide a final hook before the Open call if needed for other purposes.
+    The 'NoOpen' switch does everything except actually Open the connection. When specified, the return value is an unopened SqlConnection object vs. an opened SqlConnection object. The purpose of the switch is primarily for unit tests and debugging, but it does provide a final hook before the Open call if needed for other purposes.
 .PARAMETER ConnectionString
     Connection string to use for the connection. Credential may be embedded or passed in the Credential parameter.
 .PARAMETER Credential
@@ -23,27 +23,27 @@ function Open-SqlConnection {
 .OUTPUTS
     SqlConnection, Exception.
 .EXAMPLE
-    PS> $connStr = "Server=$srv1;Database=$db;MultipleActiveResultSets=true;User ID=$user;Password=$pass;"
-    PS> [SqlConnection]$conn = Open-SqlConnection -ConnectionString $connStr
-
-    Open an SQL connection using a connection string and a plaintext password stored in a PS variable.
-.EXAMPLE
-    PS>  # At beginning of script - at least that is the idea - set once and forget
-    PS> Set-SqlCacheConnectionString "Server=sqlSrv;Database=myDB;User ID=*;"
-    PS> Set-SqlCacheCredential $creds
-    PS>  # Remaining parts of the script unless an override is needed, BUT let Invoke-SqlQuery handle connections unless there is a reaon not to.
-    PS> [SqlConnection]$conn = Open-SqlConnection
+    PS:\> # At beginning of script - at least that is the idea - set once and forget
+    PS:\>Set-SqlCacheConnectionString "Server=sqlSrv;Database=myDB;User ID=*;"
+    PS:\>Set-SqlCacheCredential $creds
+    PS:\> # Remaining parts of the script unless an override is needed, BUT let Invoke-SqlQuery handle connections unless there is a reaon not to.
+    PS:\>[SqlConnection]$conn = Open-SqlConnection
 
     Open a connection using cached values. The '*' in the connection string signifies the User ID and Password values are to be retrieved from a passed Credential parameter or from the credential cache (see Set-SqlCacheCredential).
 .EXAMPLE
-    PS> $connStr = "Server=$srv1;Database=$db;"
-    PS> [SqlConnection]$conn = Open-SqlConnection -ConnectionString $connStr -Credential $creds
+    PS:\>$connStr = "Server=$srv1;Database=$db;"
+    PS:\>[SqlConnection]$conn = Open-SqlConnection -ConnectionString $connStr -Credential $creds
 
     Open an SQL connection using a connection string. The difference between this example and the previous one is this example directly specifies the connection string and credentials where in the previous example they were pulled from the cache.
 .EXAMPLE
-    PS> [SqlConnection]$conn = Open-SqlConnection -Server Srv1 -Database DB1 -Credential $creds
+    PS:\>[SqlConnection]$conn = Open-SqlConnection -Server Srv1 -Database DB1 -Credential $creds
 
     Open an SQL connection to Srv1 with the default database set to DB1.
+.EXAMPLE
+    PS:\>$connStr = "Server=$srv1;Database=$db;MultipleActiveResultSets=true;User ID=$user;Password=$pass;"
+    PS:\>[SqlConnection]$conn = Open-SqlConnection -ConnectionString $connStr
+
+    Open an SQL connection using a connection string and a plaintext password stored in a PS variable.
 .NOTES
     Author: Mike Dumdei
 #>

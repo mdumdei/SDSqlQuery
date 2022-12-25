@@ -7,7 +7,7 @@ function Get-SqlTraceEnabled {
 
     Related cmdlets: Invoke-SqlQuery, Enable-SqlTrace, Disable-SqlTrace, Get-SqlTrace, Get-SqlTraceData, Write-SqlTraceLog, Clear-SqlTraceLog.
 .EXAMPLE
-    PS> [bool]$traceEnabled = Get-SqlTraceEnabled
+    PS:\>[bool]$traceEnabled = Get-SqlTraceEnabled
 
     Check if tracing is currently enabled.
 .INPUTS

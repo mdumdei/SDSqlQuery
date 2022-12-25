@@ -3,10 +3,10 @@ function Convert-QueryToObjects {
 .SYNOPSIS
     Convert DataTable results to a PSObjects array.
 .DESCRIPTION
-    The C# implementation of a call to Invoke-SqlQuery when used with the 'RawReader' switch returns a DataTable object as the result. If trace logging is enabled, the Data field for all tabular results is also a DataTable object. The Convert-QueryToObjects cmdlet converts the DataTable object into an array of PSObjects and replaces DBNulls with PowerShell nulls. MapFields may be used to change field names and strip trailing spaces from fixed CHAR() fields.
+    Invoke-SqlQuery produces a System.Data.DataTable object as the native result for Reader/RawReader queries. If Invoke-SqlQuery is called with the Reader switch vs. RawReader, the result returned is post-processed and returned as an array of PSCustomObjects. Post-processing converts DBNulls to PowerShell nulls and processes the MapFields parameter. If RawReader is used, the native PowerShell version of this module produces an array of unprocessed PSCustomObjects, however, the compiled C# version of the module returns the DataTable object. If capturing a trace, the Data property of the trace for Reader/RawReader queries will always be a DataTable. This cmdlet, Convert-QueryToObjects converts DataTables to PSCustomObject arrays. It may also be used to apply post-processing to existing PSCustomObject results by using the MapFields parameter (See Invoke-SqlQuery for details on MapFields). The set of allowed input objects enables pipeline input from various sources. 
 
-    The set of allowed input objects provided enables pipeline input from various sources. Unless you are working with a trace object, it is better to use the Reader vs. RawReader switch for tabular data making this cmdlet unnecessary.
-
+    Unless working with a trace object, it is better to use the Reader vs. RawReader switch since it does some clean up and the PSCustomObject array is easier to work with than a DataTable result. An exception would be when using the native PowerShell version and working with large result sets. Post-processing has no discernable effect on the C# version of the module, but does impact performance of the native PowerShell version. Unless using MapFields, the penalty of the slowed response is only offset by having [DBNull]::Values automatically converted to $nulls. In that case, use RawReader for speed. This command is useful for post-processing trace data or post-processing results after their initial capture.
+    
     Related cmdlets: Invoke-SqlQuery, Get-SqlTrace, Get-SqlTraceData, Convert-QueryToCsv
 .PARAMETER MapFields
     Rename output field names and/or trim trailing spaces from fixed CHAR() fields. See Invoke-SqlQuery description for details. Numeric formats described there have no effect in this context.
@@ -23,7 +23,7 @@ function Convert-QueryToObjects {
 .OUTPUTS
     CSV data as a string
 .EXAMPLE
-    PS> [PSObject[]]$objs = Convert-QueryToObjects -Table $(Get-SqlTrace 0).Data
+    PS:\>[PSObject[]]$objs = Convert-QueryToObjects -Table $(Get-SqlTrace 0).Data
 
     Convert the content of Trace item 0 from a DataTable to a PSObject array.
 .NOTES
