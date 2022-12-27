@@ -4,7 +4,7 @@ InModuleScope -ModuleName SDSqlQuery -ScriptBlock {
         $pw = ConvertTo-SecureString "myPw" -AsPlainText -Force
         $pw.MakeReadOnly()
         $cred1 = New-Object PSCredential($user, $pw)
-        $cred2 = New-Object System.Data.SqlClient.SqlCredential("user2", $pw)
+        $cred2 = New-Object PSCredential("user2", $pw)
     }
 
     Describe "Credential Tests" {

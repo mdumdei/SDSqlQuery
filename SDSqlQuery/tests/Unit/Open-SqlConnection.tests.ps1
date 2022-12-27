@@ -29,7 +29,7 @@ InModuleScope -ModuleName SDSqlQuery -ScriptBlock {
             $conn.ConnectionString | Should -BeLike "*Integrated Security*"
         }
         It "Srv/DB and cache is ok" {
-            Set-SqlCacheCredential $sqlCred
+            Set-SqlCacheCredential $psCred
             $conn = Open-SqlConnection -Server "srv1" -Database "db1" -NoOpen
             $conn.DataSource | Should -Be "srv1"
             $conn.Database | Should -Be "db1"

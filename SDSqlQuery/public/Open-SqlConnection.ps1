@@ -53,7 +53,7 @@ function Open-SqlConnection {
         [Parameter(Position = 0, ParameterSetName="ConnStr", Mandatory)][string]$ConnectionString,
         [Parameter(Position = 0, ParameterSetName="SrvDB", Mandatory)][string]$Server,
         [Parameter(Position = 1, ParameterSetName="SrvDB", Mandatory)][string]$Database,
-        [Parameter(Position = 2)][Object]$Credential,
+        [Parameter(Position = 2)][PSCredential]$Credential,
         [Parameter(Position = 3)][Switch]$NoOpen
     )
     $conn = New-Object System.Data.SqlClient.SqlConnection
@@ -77,14 +77,10 @@ function Open-SqlConnection {
         $scb.Add("Initial Catalog", $Database)
         $isSrvDB = $true
     }
-    if ($Credential -is [System.Data.SqlClient.SqlCredential]) {
-        $sqlCreds = $Credential
-    } elseif ($Credential -is [PSCredential]) {
+    if ($null -ne $Credential) {
         $Credential.Password.MakeReadOnly()
         $sqlCreds = New-Object System.Data.SqlClient.SqlCredential($Credential.UserName, $Credential.Password)
-    } elseif ($null -ne $Credential) {
-        throw "Credential must be PSCredential or SqlCredential"
-    }
+    } 
     if ($null -eq $sqlCreds -and ($isSrvDB -or $havePlaceHolders)) {
         $sqlCreds = Get-SqlCacheCredential $scb.DataSource $scb.InitialCatalog
         if ($null -eq $sqlCreds) {

@@ -5,11 +5,17 @@ function Set-SqlCacheCredential {
 .DESCRIPTION
     In scripts where multiple SQL queries performed, the same credentials are often used for all queries. Set-SqlCacheCredential can be used to preset credentials avoiding the need to pass the Credential parameter to Invoke-SqlQuery on a per-call basis. 
 
-    This command adds a credential to the credential cache. If only the credential is provided, the credential is used for all connections. When connecting to mulitple server instances, that require different credentials for each instance, specify the server as well as the credential. For situations where contained databases are used with different credentials per database, specify the database parameter. When using cached credentials in environments with multiple servers or credentials are entered for a specific server and also a non-server specific server credential, Invoke-SqlQuery will use the credential that best matches the situation.
+    This command adds a credential to the credential cache. If only the credential is provided, the credential is used for all connections. When connecting to multiple server instances, that require different credentials for each instance, specify the server as well as the credential. For situations where contained databases are used with different credentials per database, specify the database parameter. When using cached credentials in environments with multiple servers or credentials are entered for a specific server and also a non-server specific server credential, Invoke-SqlQuery will use the credential that best matches the situation.
 
     Use of cached credentials in combination with a cached connection string, minimizes the number of parameters that must be provided to Invoke-SqlQuery.
     
     Related cmdlets: Invoke-SqlQuery, Set-SqlCacheCredential, Get-SqlCacheCredential
+.PARAMETER Credential
+    Credential to use for SQL connections as a PSCredential.
+.PARAMETER UserName
+    User ID to use for SQL connections.
+.PARAMETER Password
+    Password to use for SQL connections as a SecureString.
 .PARAMETER Server
     Add a server specific credential for environments with multiple servers having different credentials per server.
 .PARAMETER Database
@@ -21,7 +27,7 @@ function Set-SqlCacheCredential {
 .EXAMPLE
     PS:\>Set-SqlCacheCredential -Credential $creds
 
-    Add a credential to the cache that will be used connections to all servers that do not have a server specific credential in the credential cache - a "global" credential.
+    Add a credential to the cache to use for all connections not having a server specific credential in the credential cache - a "global" credential.
 .INPUTS
     None.
 .OUTPUTS
@@ -32,7 +38,7 @@ function Set-SqlCacheCredential {
     [CmdletBinding(DefaultParameterSetName="Creds")]
     [OutputType([Void])]
     param(
-        [Parameter(Position=0,ParameterSetName="Creds",Mandatory)][Object]$Credential,
+        [Parameter(Position=0,ParameterSetName="Creds",Mandatory)][PScredential]$Credential,
         [Parameter(Position=0,ParameterSetName="UserPass",Mandatory)][string]$UserName,
         [Parameter(Position=1,ParameterSetName="UserPass",Mandatory)][SecureString]$Password,
         [Parameter(Position=2)][string]$Server,
@@ -41,23 +47,17 @@ function Set-SqlCacheCredential {
     [string]$DEFAULT = "__DEFAULT__"
     if ($PSBoundParameters.ParameterSetName -eq "UserPass") {
         $Password.MakeReadOnly()
-        $cred = New-Object System.Data.SqlClient.SqlCredential($UserName, $Password)
+        $sqlCreds = New-Object System.Data.SqlClient.SqlCredential($UserName, $Password)
     } else {
-        if ($Credential -is [System.Data.SqlClient.SqlCredential]) {
-            $cred = $Credential
-        } elseif ($Credential -is [PSCredential]) {
-            $Credential.Password.MakeReadOnly()
-            $cred = New-Object System.Data.SqlClient.SqlCredential($Credential.UserName, $Credential.Password)
-        } else {
-            throw "Credential must be PSCredential or SqlCredential"
-        }
+        $Credential.Password.MakeReadOnly()
+        $sqlCreds = New-Object System.Data.SqlClient.SqlCredential($Credential.UserName, $Credential.Password)
     }     
     if ([string]::IsNullOrEmpty($Server)) { $Server = $DEFAULT }
     if ([string]::IsNullOrEmpty($Database)) { $Database = $DEFAULT }
     $key = $Server + $Database
     if ([SqlSettings]::SqlCreds.ContainsKey($key)) {
-        [SqlSettings]::SqlCreds[$key] = $cred
+        [SqlSettings]::SqlCreds[$key] = $sqlCreds
     } else {
-        [SqlSettings]::SqlCreds.Add($key, $cred) | Out-Null
+        [SqlSettings]::SqlCreds.Add($key, $sqlCreds) | Out-Null
     }
 }

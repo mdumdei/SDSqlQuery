@@ -32,16 +32,16 @@ function Convert-QueryToObjects {
     [CmdletBinding()]
     param (
         [Alias("DataRow")]
-        [Parameter(Position=0,ParameterSetName="Row",ValueFromPipeline,Mandatory)]
+        [Parameter(Position=0,ParameterSetName="DataRow",ValueFromPipeline,Mandatory)]
         [System.Data.DataRow]$Row,        
         [Alias("DataTable")]       
-        [Parameter(Position=0,ParameterSetName="Table",ValueFromPipeline,Mandatory)]
+        [Parameter(Position=0,ParameterSetName="DataTable",ValueFromPipeline,Mandatory)]
         [System.Data.DataTable]$Table,    
         [Alias("SqlTrace")]    
-        [Parameter(Position=0,ParameterSetName="Trace",ValueFromPipeline,Mandatory)]
+        [Parameter(Position=0,ParameterSetName="SqlTraceItem",ValueFromPipeline,Mandatory)]
         [SqlTrace]$SqlTraceItem,
-        [Parameter(Position=0,ParameterSetName="Objects",ValueFromPipeline,Mandatory)]
-        [PSObject[]]$Objects,
+        [Parameter(Position=0,ParameterSetName="PSObjects",ValueFromPipeline,Mandatory)]
+        [PSObject[]]$PSObjects,
         [Parameter()][HashTable]$MapFields
     )
     begin {
@@ -68,10 +68,10 @@ function Convert-QueryToObjects {
                 Add-Member -InputObject $obj -NotePropertyName $mapCols[$i] -NotePropertyValue $val
             }
             return $obj
-        } elseif ($null -ne $Objects) {    
+        } elseif ($null -ne $PSObjects) {    
             [System.Collections.Generic.List[PSObject]]$objAry = New-Object System.Collections.Generic.List[PSObject]
-            for ($j = 0; $j -lt $Objects.Count; $j++) {
-                $obj = $Objects[$j]
+            for ($j = 0; $j -lt $PSObjects.Count; $j++) {
+                $obj = $PSObjects[$j]
                 $newObj = New-Object PSObject
                 if ($j -eq 0) {
                     $mapCols = $($obj.PSObject.Properties).Name

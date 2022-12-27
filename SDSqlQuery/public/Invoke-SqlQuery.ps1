@@ -14,7 +14,7 @@ function Invoke-SqlQuery  {
     In more complex scripts that access SQL multiple times, it is common for all queries to use the same connection string and login credential. Set-SqlCacheConnectionString and Set-SqlCacheCredential provide a way to specify those values one time vs. having them scattered throughout the script. 
 
     -- PlaceHolders --
-    Connection strings (both cached and directly passed) can specify an asterisk as the 'User ID'. The '*' indicates the 'User ID' and password are not in the connection string, but are stored in a cached SqlCredential object or passed directly using the -Credential parameter. The goal of place holders is to keep plain text passwords out of the script code. Note: Internally the module uses both PSCredential and SqlCredential objects and converts between the 2 types as necessary, therefore, the Credential parameter is specified as type Object rather than PSCredential. If you look at the module code itself, you will see that triggers some code warnings, but it is not a real issue since the 'Object' is always actually a secure type.
+    Connection strings (both cached and directly passed) can specify an asterisk as the 'User ID'. The '*' indicates the 'User ID' and password are not in the connection string, but are stored in a cached SqlCredential object or passed directly using the -Credential parameter. The goal of place holders is to keep plain text passwords out of the script code.
     
     -- MapFields --
     Invoke-SqlQuery's MapFields parameter adds the capability to rename columns post-query, remove trailing spaces, and apply formats to datetime and numeric fields. That functionality may sound more like the job of the user script than the query code, but having it built-in is nice when dealing with column names you have no control over, old databases that use fixed CHAR fields, and writing date and numeric data to a CSV file.
@@ -54,7 +54,7 @@ function Invoke-SqlQuery  {
 .PARAMETER ConnectionString
     The connection string to use to connect to SQL for the query.
 .PARAMETER Connection
-    An existing open SqlConnection object to use for the query. If re-using connections your connection probably will need the MulipleActiveResultSets option in the initial connection string.
+    An existing open SqlConnection object to use for the query. If re-using connections your connection may require the MulipleActiveResultSets option in the initial connection string.
 .PARAMETER Server
     Server to connect to for the query (in place of a connection or connection string).
 .PARAMETER Database
@@ -148,7 +148,7 @@ function Invoke-SqlQuery  {
         [Parameter(Position = 3, ParameterSetName = "Conn_RawReader", Mandatory)]
         [Parameter(Position = 3, ParameterSetName = "Conn_Scalar", Mandatory)]
         [Parameter(Position = 3, ParameterSetName = "Conn_NonQuery", Mandatory)]
-        [System.Data.SqlClient.SqlConnection]$SqlConn,
+        [System.Data.SqlClient.SqlConnection]$Connection,
           # ConnString
         [Parameter(Position = 3, ParameterSetName = "ConnStr_Reader",Mandatory)]
         [Parameter(Position = 3, ParameterSetName = "ConnStr_RawReader",Mandatory)]
@@ -203,16 +203,20 @@ function Invoke-SqlQuery  {
         [Parameter(Position = 9)][Switch]$TestMode
     )
     begin {
-        if ($PSBoundParameters.ContainsKey('SqlConn') -eq $false) {
+        [System.Data.SqlClient.SqlConnection]$sqlConn = $null
+        if ($PSBoundParameters.ContainsKey('Connection') -eq $true) {
+            $sqlConn = $Connection
+            if ($SqlConn.State -ne [System.Data.ConnectionState]::Open -and !$TestMode) {
+                throw "SQL connection not in open state"
+            }
+        } else {
             $splat = @{}
             if (![string]::IsNullOrEmpty($ConnectionString)) { $splat.Add('ConnectionString', $ConnectionString) }
             if (![string]::IsNullOrEmpty($Server)) { $splat.Add('Server', $Server) }
             if (![string]::IsNullOrEmpty($Database)) { $splat.Add('Database', $Database) }
             if ($null -ne $Credential) { $splat.Add('Credential', $Credential) }
             $SqlConn = Open-SqlConnection @splat -NoOpen:$TestMode
-        } elseif ($SqlConn.State -ne [ConnectionState]::Open -and !$TestMode) {
-            throw "SQL connection not in open state"
-        }
+        } 
         $Server = $sqlConn.DataSource
         $Database = $sqlConn.Database
         if ($PSBoundParameters.ContainsKey('MapFields') -eq $false) {
