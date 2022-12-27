@@ -1,9 +1,3 @@
----
-external help file: SDSqlQuery-help.xml
-Module Name: SDSqlQuery
-online version:
-schema: 2.0.0
----
 
 # Open-SqlConnection
 

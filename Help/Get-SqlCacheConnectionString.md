@@ -1,10 +1,3 @@
----
-external help file: SDSqlQuery-help.xml
-Module Name: SDSqlQuery
-online version:
-schema: 2.0.0
----
-
 # Get-SqlCacheConnectionString
 
 ## SYNOPSIS
@@ -45,4 +38,4 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 Author: Mike Dumdei
 
 ## RELATED LINKS
-[Invoke-SqlQuery](.\Invoke-SqlQuery.md), [Clear-SqlCacheCredential](.\Clear-SqlCacheCredential.md), [Get-SqlCacheCredential](.\Get-SqlCacheCredential.md), [Set-SqlCacheCredential](.\Set-SqlCacheCredential.md), [Get-SqlCacheConnectionString](.\Get-SqlCacheConnectionString.md), [Set-SqlCacheConnectionString](.\Set-SqlCacheConnectionString.md)
+[Invoke-SqlQuery](./Invoke-SqlQuery.md), [Clear-SqlCacheCredential](./Clear-SqlCacheCredential.md), [Get-SqlCacheCredential](./Get-SqlCacheCredential.md), [Set-SqlCacheCredential](./Set-SqlCacheCredential.md), [Get-SqlCacheConnectionString](./Get-SqlCacheConnectionString.md), [Set-SqlCacheConnectionString](./Set-SqlCacheConnectionString.md)

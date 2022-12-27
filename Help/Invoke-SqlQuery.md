@@ -1,9 +1,3 @@
----
-external help file: SDSqlQuery-help.xml
-Module Name: SDSqlQuery
-online version:
-schema: 2.0.0
----
 
 # Invoke-SqlQuery
 
@@ -413,6 +407,6 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 Author: Mike Dumdei
 
 ## RELATED LINKS
-[Set-SqlCacheCredential](.\Set-SqlCacheCredential.md), [Set-SqlCacheConnectionString](.\Set-SqlCacheConnectionString.md),
-[Enable-SqlTrace](.\Enable-SqlTrace.md)
+[Set-SqlCacheCredential](./Set-SqlCacheCredential.md), [Set-SqlCacheConnectionString](./Set-SqlCacheConnectionString.md),
+[Enable-SqlTrace](./Enable-SqlTrace.md)
 

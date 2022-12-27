@@ -1,9 +1,3 @@
----
-external help file: SDSqlQuery-help.xml
-Module Name: SDSqlQuery
-online version:
-schema: 2.0.0
----
 
 # Clear-SqlTraceLog
 
@@ -42,6 +36,6 @@ Clear all existing in-memory log entries.
 Author: Mike Dumdei
 
 ## RELATED LINKS
-[Invoke-SqlQuery](.\Invoke-SqlQuery.md), [Enable-SqlTrace](.\Enable-SqlTrace.md), [Disable-SqlTrace](.\Disable-SqlTrace.md), [Get-SqlTraceEnabled](.\Get-SqlTraceEnabled.md), [Get-SqlTrace](.\Get-SqlTrace.md), [Get-SqlTraceData](.\Get-SqlTraceData.md), [Write-SqlTraceLog](.\Write-SqlTraceLog.md)
+[Invoke-SqlQuery](./Invoke-SqlQuery.md), [Enable-SqlTrace](./Enable-SqlTrace.md), [Disable-SqlTrace](./Disable-SqlTrace.md), [Get-SqlTraceEnabled](./Get-SqlTraceEnabled.md), [Get-SqlTrace](./Get-SqlTrace.md), [Get-SqlTraceData](./Get-SqlTraceData.md), [Write-SqlTraceLog](./Write-SqlTraceLog.md)
 
 
